@@ -538,3 +538,83 @@ ggsave(
   height = 4.5,
   device = cairo_pdf
 )
+
+# Manually-adjusted for making plots that animate in
+
+data <- dt_adjusted_epa
+
+data %>%
+  # filter(country == 'USA') %>%
+  ggplot() +
+  geom_point(
+    aes(
+      x = range_mi,
+      y = price,
+      color = country
+    ),
+    size = 0.8,
+    alpha = 0.6
+  ) +
+  facet_wrap(vars(class), nrow = 1) +
+  theme_minimal_grid(font_family = font_main) +
+  scale_y_continuous(
+    breaks = seq(0, ylim, 20000),
+    labels = scales::dollar
+  ) +
+  scale_x_continuous(
+    breaks = seq(0, 600, 150)
+  ) +
+  coord_cartesian(
+    xlim = c(0, 600),
+    ylim = c(0, ylim)
+  ) +
+  scale_color_manual(values = c(unlist(colors))) +
+  labs(
+    x = 'Range (miles)',
+    y = 'Price ($USD)',
+    title = "Price vs. Range for all Model Year 2024 BEVs in <span style='color:#E41A1C'>China</span> and the <span style='color:#2171B5'>USA</span>",
+    subtitle = ""
+  ) +
+  theme(
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_markdown(family = font_main),
+    legend.position = 'none',
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    strip.background = element_rect(fill = "gray", color = NA)
+  ) +
+  panel_border() +
+  geom_text_repel(
+    data = data %>%
+      mutate(vehicle = ifelse(target_model, vehicle, '')),
+    aes(
+      x = range_mi,
+      y = price,
+      color = country,
+      label = vehicle
+    ),
+    # Add these parameters to improve label placement
+    size = 3.5,
+    family = font_main,
+    force = 50, # Increase repulsion force
+    box.padding = 1, # Padding around labels
+    segment.color = "grey50", # Color of connector lines
+    min.segment.length = 0, # Show all connector lines
+    max.overlaps = Inf, # Don't discard any labels
+    seed = 9 # For reproducible results
+  )
+
+ggsave(
+  file.path('figs', 'temp.png'),
+  width = 11,
+  height = 4.5,
+  dpi = 300
+)
+
+ggsave(
+  file.path('figs', 'temp.pdf'),
+  width = 11,
+  height = 4.5,
+  device = cairo_pdf
+)
